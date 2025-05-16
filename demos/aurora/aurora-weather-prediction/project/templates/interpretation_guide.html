@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurora Weather Prediction - Interpretation Guide</title>
+    <style>
+        :root {
+            --bg-color: #0f1118;
+            --card-bg: rgba(25, 28, 39, 0.6);
+            --accent-color: #546bff;
+            --text-color: #f0f2f5;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --error-color: #F44336;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0b0e16, #1a1f2e);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 2rem;
+            background-attachment: fixed;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #6ea7ff, #546bff, #9f76ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-right: 1rem;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.7;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+        
+        .variable-section {
+            margin-bottom: 2rem;
+        }
+        
+        .colorbar-demo {
+            height: 30px;
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+        
+        .temp-colorbar {
+            background: linear-gradient(to right, darkblue, blue, cyan, white, yellow, orange, red);
+        }
+        
+        .wind-u-colorbar {
+            background: linear-gradient(to right, darkblue, lightblue, white, orange, darkred);
+        }
+        
+        .wind-v-colorbar {
+            background: linear-gradient(to right, darkgreen, lightgreen, white, purple, darkviolet);
+        }
+        
+        .humidity-colorbar {
+            background: linear-gradient(to right, sandybrown, khaki, lightblue, darkblue);
+        }
+        
+        .interpretation {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .scale-marker {
+            position: relative;
+            height: 15px;
+        }
+        
+        .scale-marker::before {
+            content: '|';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        th, td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            background-color: rgba(0, 0, 0, 0.2);
+        }
+        
+        .color-sample {
+            width: 20px;
+            height: 20px;
+            display: inline-block;
+            border-radius: 3px;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+        
+        .map-example {
+            max-width: 100%;
+            border-radius: 8px;
+            margin: 1rem 0;
+            border: 1px solid var(--border-color);
+        }
+        
+        .note {
+            background: rgba(84, 107, 255, 0.1);
+            border-left: 3px solid var(--accent-color);
+            padding: 1rem;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-container">
+                <div class="logo">Aurora</div>
+                <div class="subtitle">Weather Prediction Interpretation Guide</div>
+            </div>
+        </div>
+        
+        <a href="/" class="back-link">← Back to Prediction Tool</a>
+        
+        <div class="card">
+            <h2>How to Interpret Aurora Weather Visualizations</h2>
+            
+            <p>This guide helps you understand the weather visualizations created by the Aurora AI Foundation Model. Each variable uses a specific color scheme to represent different weather conditions.</p>
+            
+            <div class="note">
+                <strong>Note:</strong> Aurora is an AI-based weather forecasting model that predicts meteorological variables like temperature, wind, and humidity across a global grid. The color maps represent the intensity and direction of these variables.
+            </div>
+        </div>
+        
+        <div class="card variable-section">
+            <h2>2m Temperature (K)</h2>
+            
+            <p>This variable shows the air temperature at 2 meters above the surface in Kelvin. The temperature scale uses a traditional "cold-to-hot" color scheme.</p>
+            
+            <div class="colorbar-demo temp-colorbar"></div>
+            
+            <div class="interpretation">
+                <div>Cold (Lower K)</div>
+                <div>Neutral</div>
+                <div>Hot (Higher K)</div>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Color</th>
+                        <th>Interpretation</th>
+                        <th>Approximate Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: darkblue;"></span>Dark Blue</td>
+                        <td>Very cold temperatures</td>
+                        <td>Below 253K (−20°C)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: blue;"></span>Blue</td>
+                        <td>Cold temperatures</td>
+                        <td>253K-263K (−20°C to −10°C)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: cyan;"></span>Cyan</td>
+                        <td>Cool temperatures</td>
+                        <td>263K-273K (−10°C to 0°C)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: white;"></span>White</td>
+                        <td>Neutral temperatures</td>
+                        <td>273K-283K (0°C to 10°C)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: yellow;"></span>Yellow</td>
+                        <td>Warm temperatures</td>
+                        <td>283K-293K (10°C to 20°C)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: orange;"></span>Orange</td>
+                        <td>Hot temperatures</td>
+                        <td>293K-303K (20°C to 30°C)</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: red;"></span>Red</td>
+                        <td>Very hot temperatures</td>
+                        <td>Above 303K (30°C)</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="note">
+                <strong>Converting Kelvin to Celsius:</strong> To convert from Kelvin (K) to Celsius (°C), subtract 273.15 from the Kelvin value.<br>
+                <em>Example: 293K = 293 - 273.15 = 19.85°C</em>
+            </div>
+        </div>
+        
+        <div class="card variable-section">
+            <h2>10m Eastward Wind (m/s)</h2>
+            
+            <p>This variable shows the eastward component of wind at 10 meters above the surface in meters per second. Positive values indicate eastward flow (wind blowing from west to east), while negative values indicate westward flow (wind blowing from east to west).</p>
+            
+            <div class="colorbar-demo wind-u-colorbar"></div>
+            
+            <div class="interpretation">
+                <div>Strong Westerly<br>(Negative values)</div>
+                <div>Calm</div>
+                <div>Strong Easterly<br>(Positive values)</div>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Color</th>
+                        <th>Interpretation</th>
+                        <th>Approximate Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: darkblue;"></span>Dark Blue</td>
+                        <td>Strong westerly wind (from east to west)</td>
+                        <td>Below -10 m/s</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: lightblue;"></span>Light Blue</td>
+                        <td>Moderate westerly wind</td>
+                        <td>-10 to -2 m/s</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: white;"></span>White</td>
+                        <td>Calm or light winds</td>
+                        <td>-2 to 2 m/s</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: orange;"></span>Orange</td>
+                        <td>Moderate easterly wind</td>
+                        <td>2 to 10 m/s</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: darkred;"></span>Dark Red</td>
+                        <td>Strong easterly wind (from west to east)</td>
+                        <td>Above 10 m/s</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="note">
+                <strong>Wind Speed Conversion:</strong> 1 m/s = 3.6 km/h = 2.24 mph<br>
+                <em>Example: 5 m/s = 18 km/h = 11.2 mph</em>
+            </div>
+        </div>
+        
+        <div class="card variable-section">
+            <h2>10m Southward Wind (m/s)</h2>
+            
+            <p>This variable shows the southward component of wind at 10 meters above the surface in meters per second. Positive values indicate southward flow (wind blowing from north to south), while negative values indicate northward flow (wind blowing from south to north).</p>
+            
+            <div class="colorbar-demo wind-v-colorbar"></div>
+            
+            <div class="interpretation">
+                <div>Strong Northerly<br>(Negative values)</div>
+                <div>Calm</div>
+                <div>Strong Southerly<br>(Positive values)</div>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Color</th>
+                        <th>Interpretation</th>
+                        <th>Approximate Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: darkgreen;"></span>Dark Green</td>
+                        <td>Strong northerly wind (from south to north)</td>
+                        <td>Below -10 m/s</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: lightgreen;"></span>Light Green</td>
+                        <td>Moderate northerly wind</td>
+                        <td>-10 to -2 m/s</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: white;"></span>White</td>
+                        <td>Calm or light winds</td>
+                        <td>-2 to 2 m/s</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: purple;"></span>Purple</td>
+                        <td>Moderate southerly wind</td>
+                        <td>2 to 10 m/s</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: darkviolet;"></span>Dark Violet</td>
+                        <td>Strong southerly wind (from north to south)</td>
+                        <td>Above 10 m/s</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="note">
+                <strong>Combining Wind Components:</strong> Eastward (u) and Southward (v) wind components can be combined to determine the total wind direction and speed. The total wind speed is the square root of the sum of the squares of the two components.
+            </div>
+        </div>
+        
+        <div class="card variable-section">
+            <h2>Specific Humidity (kg/kg)</h2>
+            
+            <p>This variable represents the mass of water vapor per mass of air. It is a ratio with no units, though often expressed as kg/kg. Higher values indicate more moisture in the air.</p>
+            
+            <div class="colorbar-demo humidity-colorbar"></div>
+            
+            <div class="interpretation">
+                <div>Dry</div>
+                <div>Moderately Humid</div>
+                <div>Very Humid</div>
+            </div>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Color</th>
+                        <th>Interpretation</th>
+                        <th>Approximate Range</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: sandybrown;"></span>Sandy Brown</td>
+                        <td>Very dry air</td>
+                        <td>0-0.003 kg/kg</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: khaki;"></span>Khaki</td>
+                        <td>Dry air</td>
+                        <td>0.003-0.007 kg/kg</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: lightblue;"></span>Light Blue</td>
+                        <td>Moderately humid air</td>
+                        <td>0.007-0.015 kg/kg</td>
+                    </tr>
+                    <tr>
+                        <td><span class="color-sample" style="background-color: darkblue;"></span>Dark Blue</td>
+                        <td>Very humid air</td>
+                        <td>Above 0.015 kg/kg</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="note">
+                <strong>Humidity Context:</strong> Specific humidity varies with temperature and pressure. The same specific humidity will feel much more humid in cool conditions than in hot conditions. Tropical regions typically have values around 0.015-0.020 kg/kg, while desert regions may have values below 0.005 kg/kg.
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Reading the Weather Maps</h2>
+            
+            <p>When interpreting Aurora weather prediction maps, consider these tips:</p>
+            
+            <ul style="margin-left: 1.5rem; line-height: 1.5;">
+                <li><strong>Look for patterns and gradients</strong> - Sharp color changes often indicate weather fronts or boundaries between air masses.</li>
+                <li><strong>Compare sequential time steps</strong> - The movement of patterns across time steps shows how weather systems are predicted to evolve.</li>
+                <li><strong>Consider all variables together</strong> - Temperature, wind, and humidity patterns often relate to each other.</li>
+                <li><strong>Check the color scale values</strong> - The specific numerical range for each visualization may vary depending on the global conditions.</li>
+            </ul>
+            
+            <div class="note">
+                <strong>Scientific Units:</strong> Aurora uses standard meteorological units: Kelvin (K) for temperature, meters per second (m/s) for wind components, and kilograms per kilogram (kg/kg) for specific humidity.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

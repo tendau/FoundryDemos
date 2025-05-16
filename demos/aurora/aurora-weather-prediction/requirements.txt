@@ -1,0 +1,12 @@
+flask==2.0.1
+python-dotenv==0.19.1
+requests==2.27.1
+torch>=2.0.0
+numpy==1.22.3
+matplotlib==3.5.1
+pillow==9.0.1
+azure-storage-blob==12.8.1
+plotly==5.6.0
+dash==2.3.1
+pandas==1.4.2
+microsoft-aurora

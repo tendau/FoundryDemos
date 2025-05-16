@@ -1,0 +1,1059 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aurora Weather Prediction</title>
+    <style>
+        :root {
+            --bg-color: #0f1118;
+            --card-bg: rgba(25, 28, 39, 0.6);
+            --accent-color: #546bff;
+            --text-color: #f0f2f5;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --error-color: #F44336;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0b0e16, #1a1f2e);
+            color: var(--text-color);
+            min-height: 100vh;
+            padding: 2rem;
+            background-attachment: fixed;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            flex: 1;
+        }
+        
+        .logo {
+            font-size: 2.5rem;
+            font-weight: 700;
+            background: linear-gradient(45deg, #6ea7ff, #546bff, #9f76ff);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            margin-right: 1rem;
+        }
+        
+        .subtitle {
+            font-size: 1rem;
+            opacity: 0.7;
+        }
+        
+        .connection-status {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            margin-left: auto;
+            margin-top: 1rem;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+        
+        .connected {
+            background-color: var(--success-color);
+        }
+        
+        .connecting {
+            background-color: var(--warning-color);
+        }
+        
+        .disconnected {
+            background-color: var(--error-color);
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--border-color);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .card h2 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+            color: #fff;
+            display: flex;
+            align-items: center;
+        }
+        
+        .card h2 .badge {
+            font-size: 0.75rem;
+            background: rgba(84, 107, 255, 0.2);
+            color: var(--accent-color);
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            margin-left: 0.75rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        select, input {
+            width: 100%;
+            padding: 0.7rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            color: var(--text-color);
+            font-size: 1rem;
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+        
+        button {
+            background: linear-gradient(45deg, #546bff, #9f76ff);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            border-radius: 6px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 1rem;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(84, 107, 255, 0.3);
+        }
+        
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Warning banner for synthetic data */
+        .warning-banner {
+            background-color: rgba(244, 67, 54, 0.9);
+            color: white;
+            text-align: center;
+            padding: 10px;
+            margin-bottom: 15px;
+            border-radius: 5px;
+            font-weight: bold;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .visualization {
+            position: relative;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .map-container {
+            flex-grow: 1;
+            height: 400px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #map-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .loading {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 17, 24, 0.8);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        
+        .loading-message {
+            margin-top: 1rem;
+            text-align: center;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--accent-color);
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        
+        .steps-container {
+            display: flex;
+            overflow-x: auto;
+            gap: 1rem;
+            padding: 1rem 0;
+            margin-top: 1rem;
+        }
+        
+        .step-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 0.5rem 1rem;
+            min-width: 100px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .step-btn.active {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+        }
+        
+        .step-btn:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        
+        .step-time {
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .colorbar {
+            margin-top: 1rem;
+            height: 30px;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+        }
+        
+        .colorbar-segment {
+            flex: 1;
+            height: 100%;
+        }
+        
+        .colorbar-labels {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 0.25rem;
+            font-size: 0.8rem;
+            opacity: 0.7;
+        }
+        
+        .map-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-top: 1rem;
+        }
+        
+        .map-legend {
+            flex: 1;
+        }
+        
+        .map-meta {
+            text-align: right;
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+        
+        .notification {
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .notification.info {
+            background: rgba(33, 150, 243, 0.1);
+            border-left: 3px solid #2196F3;
+        }
+        
+        .notification.warning {
+            background: rgba(255, 152, 0, 0.1);
+            border-left: 3px solid #FF9800;
+        }
+        
+        .notification.error {
+            background: rgba(244, 67, 54, 0.1);
+            border-left: 3px solid #F44336;
+        }
+        
+        .notification.success {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 3px solid #4CAF50;
+        }
+        
+        .notification-icon {
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+        
+        .notification-content {
+            flex: 1;
+        }
+        
+        .notification-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .error-message {
+            background-color: rgba(244, 67, 54, 0.1);
+            border-left: 3px solid #F44336;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .connection-status {
+                margin-left: 0;
+                margin-top: 1rem;
+            }
+            
+            .controls {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-container">
+                <div class="logo">Aurora</div>
+                <div class="subtitle">AI Foundation Model for Weather Prediction</div>
+            </div>
+            
+            <div class="connection-status">
+                <div class="status-indicator connecting" id="connection-indicator"></div>
+                <span id="connection-status">Checking connection...</span>
+            </div>
+        </div>
+        
+        <div class="card">
+            <h2>Weather Prediction Parameters <span class="badge">Real API</span></h2>
+            
+            <div id="notification-area"></div>
+            <div id="error-container"></div>
+            
+            <div class="controls">
+                <div class="form-group">
+                    <label for="variable">Weather Variable</label>
+                    <select id="variable">
+                        {% for var in variables %}
+                        <option value="{{ var.id }}">{{ var.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="model-version">Model Version</label>
+                    <select id="model-version">
+                        {% for model in model_versions %}
+                        <option value="{{ model.id }}">{{ model.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="num-steps">Prediction Steps</label>
+                    <input type="number" id="num-steps" min="1" max="10" value="4">
+                </div>
+            </div>
+            
+            <button id="predict-btn">Generate Weather Prediction</button>
+        </div>
+        
+        <div class="card">
+            <h2>Aurora Weather Visualization</h2>
+            
+            <div class="visualization">
+                <div class="map-container">
+                    <canvas id="map-canvas"></canvas>
+                    <div class="loading" id="loading">
+                        <div class="spinner"></div>
+                        <div class="loading-message">Initializing Aurora...</div>
+                    </div>
+                </div>
+                
+                <div class="steps-container" id="steps-container">
+                    <!-- Step buttons will be generated here -->
+                </div>
+                
+                <div class="map-info">
+                    <div class="map-legend">
+                        <div class="colorbar" id="colorbar">
+                            <!-- Colorbar segments will be generated here -->
+                        </div>
+                        <div class="colorbar-labels" id="colorbar-labels">
+                            <!-- Colorbar labels will be generated here -->
+                        </div>
+                    </div>
+                    
+                    <div class="map-meta" id="map-meta">
+                        <!-- Meta information will be generated here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // DOM Elements
+        const variableSelect = document.getElementById('variable');
+        const modelVersionSelect = document.getElementById('model-version');
+        const numStepsInput = document.getElementById('num-steps');
+        const predictBtn = document.getElementById('predict-btn');
+        const loadingDiv = document.getElementById('loading');
+        const errorContainer = document.getElementById('error-container');
+        const stepsContainer = document.getElementById('steps-container');
+        const colorbar = document.getElementById('colorbar');
+        const colorbarLabels = document.getElementById('colorbar-labels');
+        const mapMeta = document.getElementById('map-meta');
+        const mapCanvas = document.getElementById('map-canvas');
+        const connectionIndicator = document.getElementById('connection-indicator');
+        const connectionStatus = document.getElementById('connection-status');
+        const notificationArea = document.getElementById('notification-area');
+        
+        // Canvas context
+        const ctx = mapCanvas.getContext('2d');
+        
+        // State
+        let currentPrediction = null;
+        let currentStep = 0;
+        let isLoading = false;
+        
+        // Check connection status on load
+        checkConnection();
+        
+        // Set up canvas size
+        function setupCanvas() {
+            const container = mapCanvas.parentElement;
+            mapCanvas.width = container.clientWidth;
+            mapCanvas.height = container.clientHeight;
+        }
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            setupCanvas();
+            hideLoading();
+        });
+        
+        window.addEventListener('resize', setupCanvas);
+        
+        // Check connection to Aurora API
+        function checkConnection() {
+            fetch('/check-connection')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.connected) {
+                        connectionIndicator.className = 'status-indicator connected';
+                        connectionStatus.textContent = 'Connected to Azure AI Aurora';
+                        showNotification('success', 'Connection Successful', 'Connected to Azure AI Aurora API.');
+                    } else {
+                        connectionIndicator.className = 'status-indicator disconnected';
+                        connectionStatus.textContent = 'Disconnected';
+                        showNotification('error', 'Connection Failed', data.message || 'Failed to connect to Azure AI Aurora API.');
+                    }
+                })
+                .catch(error => {
+                    connectionIndicator.className = 'status-indicator disconnected';
+                    connectionStatus.textContent = 'Connection Error';
+                    showNotification('error', 'Connection Error', error.message);
+                });
+        }
+        
+        // Show notification
+        function showNotification(type, title, message) {
+            const notification = document.createElement('div');
+            notification.className = `notification ${type}`;
+            
+            let icon = '';
+            switch (type) {
+                case 'info': icon = 'ℹ️'; break;
+                case 'success': icon = '✅'; break;
+                case 'warning': icon = '⚠️'; break;
+                case 'error': icon = '❌'; break;
+            }
+            
+            notification.innerHTML = `
+                <div class="notification-icon">${icon}</div>
+                <div class="notification-content">
+                    <div class="notification-title">${title}</div>
+                    <div class="notification-message">${message}</div>
+                </div>
+            `;
+            
+            notificationArea.innerHTML = '';
+            notificationArea.appendChild(notification);
+            
+            // Auto-dismiss after 10 seconds
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 500);
+            }, 10000);
+        }
+        
+        // Hide loading overlay
+        function hideLoading() {
+            loadingDiv.style.display = 'none';
+            isLoading = false;
+        }
+        
+        // Generate prediction
+        predictBtn.addEventListener('click', generatePrediction);
+        
+        // Generate predictions
+        async function generatePrediction() {
+            // Clear previous data
+            currentPrediction = null;
+            stepsContainer.innerHTML = '';
+            colorbar.innerHTML = '';
+            colorbarLabels.innerHTML = '';
+            errorContainer.innerHTML = '';
+            
+            // Show loading
+            loadingDiv.style.display = 'flex';
+            
+            // Get form values
+            const variable = variableSelect.value;
+            const modelVersion = modelVersionSelect.value;
+            const numSteps = parseInt(numStepsInput.value);
+            
+            if (numSteps < 1 || numSteps > 10) {
+                showNotification('warning', 'Invalid Input', 'Prediction steps must be between 1 and 10.');
+                hideLoading();
+                return;
+            }
+            
+            // Disable button while loading
+            predictBtn.disabled = true;
+            
+            try {
+                // Call the API
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        variable,
+                        model_version: modelVersion,
+                        num_steps: numSteps
+                    })
+                });
+                
+                const responseText = await response.text();
+                console.log('API Response:', responseText); // Log the raw response
+                
+                let data;
+                try {
+                    data = JSON.parse(responseText);
+                } catch(e) { 
+                    console.error('JSON parse error:', e);
+                    errorContainer.innerHTML = `
+                        <div class="error-message">
+                            <strong>⚠️ ERROR: Failed to parse JSON response</strong><br>
+                            ${e.message}<br>
+                            Response: ${responseText.substring(0, 100)}...
+                        </div>
+                    `;
+                    throw new Error('Failed to parse response: ' + e.message);
+                }
+                
+                console.log('Parsed data:', data); // Log the parsed data structure
+                
+                if (response.ok) {
+                    // Safety check for predictions array
+                    if (!data.predictions || !Array.isArray(data.predictions) || data.predictions.length === 0) {
+                        console.error('Missing or empty predictions array in response');
+                        errorContainer.innerHTML = `
+                            <div class="error-message">
+                                <strong>⚠️ ERROR: Missing prediction data</strong><br>
+                                The server response doesn't contain valid prediction data.
+                            </div>
+                        `;
+                        return;
+                    }
+                    
+                    // Store prediction data
+                    currentPrediction = data;
+                    
+                    // Create step buttons
+                    createStepButtons(data.predictions);
+                    
+                    // Create colorbar if we have color data
+                    if (data.colormap && Array.isArray(data.colormap) && data.colormap.length > 0) {
+                        createColorbar(data.colormap, data);
+                    } else {
+                        console.warn("No colormap data found");
+                    }
+                    
+                    // Draw the first prediction if we have predictions
+                    if (data.predictions && Array.isArray(data.predictions) && data.predictions.length > 0) {
+                        currentStep = 0;
+                        drawMap();
+                    } else {
+                        console.error("No prediction data to display");
+                    }
+                    
+                    // If this is synthetic data, show a warning
+                    if (!data.aurora_api_connected) {
+                        const warningMsg = `
+                            <div class="error-message">
+                                <strong>⚠️ WARNING: Using SYNTHETIC DATA</strong><br>
+                                The Aurora API connection failed. These are NOT real Aurora predictions.
+                                ${data.error_message ? '<br>Error: ' + data.error_message : ''}
+                            </div>
+                        `;
+                        errorContainer.innerHTML = warningMsg;
+                    } else {
+                        errorContainer.innerHTML = '';
+                    }
+                } else {
+                    // Show error
+                    errorContainer.innerHTML = `
+                        <div class="error-message">
+                            ${data.message || 'An error occurred while generating predictions.'}
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                errorContainer.innerHTML = `
+                    <div class="error-message">
+                        <strong>Error:</strong> ${error.message || 'An error occurred while connecting to the server.'}
+                    </div>
+                `;
+            } finally {
+                // Hide loading and enable button
+                hideLoading();
+                predictBtn.disabled = false;
+            }
+        }
+        
+        // Create step buttons
+        function createStepButtons(predictions) {
+            stepsContainer.innerHTML = '';
+            
+            // Safety check - make sure predictions is a valid array
+            if (!predictions || !Array.isArray(predictions) || predictions.length === 0) {
+                console.error("No prediction data available");
+                errorContainer.innerHTML = `
+                    <div class="error-message">
+                        <strong>⚠️ ERROR: No prediction data available</strong><br>
+                        The API didn't return any valid prediction data.
+                    </div>
+                `;
+                return;
+            }
+            
+            predictions.forEach((pred, index) => {
+                // Safety check for each prediction
+                if (!pred) {
+                    console.error("Invalid prediction data at index", index);
+                    return;
+                }
+
+                // Use current time + hours if time is missing
+                try {
+                    const timeValue = pred.time || (new Date(Date.now() + (index * 6 * 60 * 60 * 1000))).toISOString();
+                    const stepTime = new Date(timeValue);
+                    const formattedTime = stepTime.toLocaleDateString() + ' ' + 
+                                        stepTime.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                    const btn = document.createElement('div');
+                    btn.className = 'step-btn' + (index === 0 ? ' active' : '');
+                    btn.innerHTML = `Step ${pred.step}<br><small>${formattedTime}</small>`;
+                    btn.addEventListener('click', () => {
+                        // Update active class
+                        document.querySelectorAll('.step-btn').forEach(b => b.classList.remove('active'));
+                        btn.classList.add('active');
+                        
+                        // Draw the selected prediction
+                        currentStep = index;
+                        drawMap();
+                    });
+                    
+                    stepsContainer.appendChild(btn);
+                } catch (e) {
+                    console.error("Error creating step button:", e);
+                }
+            });
+        }
+        
+        // Create colorbar
+        function createColorbar(colors, data) {
+            colorbar.innerHTML = '';
+            colorbarLabels.innerHTML = '';
+            
+            // Find global min/max across all predictions
+            let globalMin = Infinity;
+            let globalMax = -Infinity;
+            
+            data.predictions.forEach(pred => {
+                if (typeof pred.min === 'number' && typeof pred.max === 'number') {
+                    globalMin = Math.min(globalMin, pred.min);
+                    globalMax = Math.max(globalMax, pred.max);
+                }
+            });
+            
+            // Create colorbar segments
+            if (Array.isArray(colors) && colors.length > 0) {
+                colors.forEach(colorEntry => {
+                    let segmentColor;
+                    
+                    if (Array.isArray(colorEntry) && colorEntry.length >= 2) {
+                        segmentColor = colorEntry[1]; // Use the color string from [value, color] pair
+                    } else if (typeof colorEntry === 'string') {
+                        segmentColor = colorEntry; // Use directly if it's just a string
+                    } else {
+                        segmentColor = 'gray'; // Default fallback
+                    }
+                    
+                    const segment = document.createElement('div');
+                    segment.className = 'colorbar-segment';
+                    segment.style.backgroundColor = segmentColor;
+                    colorbar.appendChild(segment);
+                });
+            } else {
+                console.warn('Invalid colormap data structure:', colors);
+                
+                // Create a default colorbar
+                const defaultColors = ['blue', 'cyan', 'green', 'yellow', 'red'];
+                defaultColors.forEach(color => {
+                    const segment = document.createElement('div');
+                    segment.className = 'colorbar-segment';
+                    segment.style.backgroundColor = color;
+                    colorbar.appendChild(segment);
+                });
+            }
+            
+            // Add min and max labels
+            const minLabel = document.createElement('div');
+            minLabel.textContent = isFinite(globalMin) ? globalMin.toFixed(2) : "N/A";
+            colorbarLabels.appendChild(minLabel);
+            
+            const maxLabel = document.createElement('div');
+            maxLabel.textContent = isFinite(globalMax) ? globalMax.toFixed(2) : "N/A";
+            colorbarLabels.appendChild(maxLabel);
+        }
+        
+        // Draw map with current prediction data
+        function drawMap() {
+            if (!currentPrediction) {
+                console.error("No prediction data available");
+                return;
+            }
+            
+            if (!currentPrediction.predictions || !Array.isArray(currentPrediction.predictions)) {
+                console.error("Invalid predictions array");
+                return;
+            }
+            
+            if (!currentPrediction.predictions[currentStep]) {
+                console.error(`No prediction data for step ${currentStep}`);
+                return;
+            }
+            
+            const prediction = currentPrediction.predictions[currentStep];
+            
+            if (!prediction.data || !Array.isArray(prediction.data)) {
+                console.error(`Missing or invalid data in prediction for step ${currentStep}`);
+                return;
+            }
+            
+            // Update map meta information
+            updateMapMeta();
+            
+            const data = prediction.data;
+            const lat = currentPrediction.lat || [];
+            const lon = currentPrediction.lon || [];
+            
+            // Safety checks for lat/lon
+            if (!Array.isArray(lat) || !Array.isArray(lon) || lat.length === 0 || lon.length === 0) {
+                console.error("Invalid or missing lat/lon data");
+                errorContainer.innerHTML += `
+                    <div class="error-message">
+                        <strong>⚠️ ERROR: Invalid geographic data</strong><br>
+                        The prediction data is missing valid latitude/longitude information.
+                    </div>
+                `;
+                return;
+            }
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, mapCanvas.width, mapCanvas.height);
+            
+            // Get dimensions of the data
+            const latCount = lat.length;
+            const lonCount = lon.length;
+            
+            // Calculate cell size
+            const pixelWidth = mapCanvas.width / lonCount;
+            const pixelHeight = mapCanvas.height / latCount;
+            
+            // Get min/max for normalization
+            const min = prediction.min || 0;
+            const max = prediction.max || 1;
+            const range = max - min > 0 ? max - min : 1; // Avoid division by zero
+            
+            // Get colormap
+            const colormap = currentPrediction.colormap;
+            
+            // Check if colormap is valid
+            if (!colormap || !Array.isArray(colormap) || colormap.length === 0) {
+                console.warn("Invalid or missing colormap, using default");
+                // Draw with default colors
+                drawWithDefaultColors(data, latCount, lonCount, pixelWidth, pixelHeight, min, range);
+            } else {
+                // Draw with provided colormap
+                drawWithColormap(data, latCount, lonCount, pixelWidth, pixelHeight, min, range, colormap);
+            }
+            
+            // Draw grid lines
+            drawGridLines(latCount, lonCount, pixelWidth, pixelHeight);
+            
+            // Add variable name and timestamp
+            addLabels(prediction);
+        }
+        
+        // Draw with default color gradient
+        function drawWithDefaultColors(data, latCount, lonCount, pixelWidth, pixelHeight, min, range) {
+            for (let i = 0; i < latCount; i++) {
+                for (let j = 0; j < lonCount; j++) {
+                    if (!data[i] || data[i][j] === undefined) continue;
+                    
+                    const value = data[i][j];
+                    const normalizedValue = (value - min) / range;
+                    
+                    // Use a simple blue-to-red gradient
+                    const r = Math.floor(normalizedValue * 255);
+                    const g = 0;
+                    const b = Math.floor((1 - normalizedValue) * 255);
+                    
+                    ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                    ctx.fillRect(j * pixelWidth, i * pixelHeight, pixelWidth, pixelHeight);
+                }
+            }
+        }
+        
+        // Draw with provided colormap
+        function drawWithColormap(data, latCount, lonCount, pixelWidth, pixelHeight, min, range, colormap) {
+            for (let i = 0; i < latCount; i++) {
+                for (let j = 0; j < lonCount; j++) {
+                    if (!data[i] || data[i][j] === undefined) continue;
+                    
+                    const value = data[i][j];
+                    const normalizedValue = (value - min) / range;
+                    
+                    // Get color from colormap
+                    let colorValue = "rgba(128,128,128,1)"; // Default gray color
+                    
+                    try {
+                        if (Array.isArray(colormap) && colormap.length > 0) {
+                            // Find the right color for this value
+                            const normalizedIndex = Math.min(
+                                Math.floor(normalizedValue * (colormap.length - 1)),
+                                colormap.length - 1
+                            );
+                            
+                            if (normalizedIndex >= 0) {
+                                // Check colormap entry format
+                                const colorEntry = colormap[normalizedIndex];
+                                
+                                if (Array.isArray(colorEntry) && colorEntry.length >= 2) {
+                                    // [value, color_string] format
+                                    colorValue = colorEntry[1];
+                                } else if (typeof colorEntry === 'string') {
+                                    // Direct color string format
+                                    colorValue = colorEntry;
+                                }
+                            }
+                        }
+                    } catch (e) {
+                        console.error("Error processing colormap:", e);
+                    }
+                    
+                    // Draw cell
+                    ctx.fillStyle = colorValue;
+                    ctx.fillRect(j * pixelWidth, i * pixelHeight, pixelWidth, pixelHeight);
+                }
+            }
+        }
+        
+        // Draw grid lines
+        function drawGridLines(latCount, lonCount, pixelWidth, pixelHeight) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+            ctx.lineWidth = 0.5;
+            
+            // Draw latitude lines
+            for (let i = 0; i <= latCount; i += Math.max(1, Math.ceil(latCount / 10))) {
+                ctx.beginPath();
+                ctx.moveTo(0, i * pixelHeight);
+                ctx.lineTo(mapCanvas.width, i * pixelHeight);
+                ctx.stroke();
+            }
+            
+            // Draw longitude lines
+            for (let j = 0; j <= lonCount; j += Math.max(1, Math.ceil(lonCount / 10))) {
+                ctx.beginPath();
+                ctx.moveTo(j * pixelWidth, 0);
+                ctx.lineTo(j * pixelWidth, mapCanvas.height);
+                ctx.stroke();
+            }
+        }
+        
+        // Add labels to the map
+        function addLabels(prediction) {
+            ctx.fillStyle = 'white';
+            ctx.font = '14px sans-serif';
+            
+            // Add variable name and step
+            const variableName = getVariableName(currentPrediction.variable);
+            ctx.fillText(
+                `Variable: ${variableName} - Step ${prediction.step}`,
+                10, 
+                20
+            );
+            
+            // Add timestamp if available
+            if (prediction.time) {
+                try {
+                    const stepTime = new Date(prediction.time);
+                    ctx.fillText(
+                        `Time: ${stepTime.toLocaleDateString()} ${stepTime.toLocaleTimeString()}`,
+                        10,
+                        40
+                    );
+                } catch (e) {
+                    console.error("Error formatting time:", e);
+                }
+            }
+        }
+        
+        // Update map meta information
+        function updateMapMeta() {
+            if (!currentPrediction || !currentPrediction.predictions[currentStep]) return;
+            
+            const variable = currentPrediction.variable;
+            const model = currentPrediction.model || 'Unknown model';
+            const currentPred = currentPrediction.predictions[currentStep];
+            
+            const variableName = getVariableName(variable);
+            
+            let timeStr = '';
+            if (currentPred.time) {
+                try {
+                    const predTime = new Date(currentPred.time);
+                    timeStr = predTime.toLocaleString(undefined, {
+                        weekday: 'short',
+                        year: 'numeric',
+                        month: 'short',
+                        day: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                } catch (e) {
+                    console.error("Error formatting time:", e);
+                    timeStr = 'Invalid time';
+                }
+            } else {
+                timeStr = 'Time not available';
+            }
+            
+            mapMeta.innerHTML = `
+                <div>Variable: ${variableName}</div>
+                <div>Model: ${model}</div>
+                <div>Time: ${timeStr}</div>
+                <div>Step: ${currentPred.step} of ${currentPrediction.num_steps || currentPrediction.predictions.length}</div>
+            `;
+        }
+        
+        // Helper to get variable display name
+        function getVariableName(variableId) {
+            const variableMap = {
+                '2t': '2m Temperature (K)',
+                '10u': '10m Eastward Wind (m/s)',
+                '10v': '10m Southward Wind (m/s)',
+                'q': 'Specific Humidity (kg/kg)'
+            };
+            
+            return variableMap[variableId] || variableId;
+        }
+    </script>
+</body>
+</html>
